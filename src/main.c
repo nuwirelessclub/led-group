@@ -8,14 +8,14 @@ ISR(INT0_vect )
 { 
   if(bit_is_set(PIND, PD3)) //clockwise
   { 
-    if (OCR0A < 245) OCR0A += 10;
+    if (OCR0A < 245) OCR0A += 5;
     else OCR0A = 255;
   } 
   else //counter-clockwise
   { 
-    if (OCR0A >= 10) OCR0A -= 10; 
+    if (OCR0A >= 10) OCR0A -= 5; 
     else OCR0A = 0;
-  } 
+  }
 } 
 
 //INT1 interrupt 
@@ -23,14 +23,14 @@ ISR(INT1_vect )
 { 
   if(bit_is_set(PIND, PD2)) //clockwise
   { 
-    if (OCR0A < 245) OCR0A += 10;
+    if (OCR0A < 245) OCR0A += 5;
     else OCR0A = 255;
   } 
   else //counter-clockwise
   { 
-    if (OCR0A >= 10) OCR0A -= 10;
+    if (OCR0A >= 10) OCR0A -= 5;
     else OCR0A = 0;
-  } 
+  }
 } 
 
 void pwm_init(void)
@@ -46,7 +46,6 @@ void pwm_init(void)
   // initialize counter for TIMER 0
   TCNT0 = 0;
   OCR0A = 128;
-  _delay_ms(100000);
 }
 
 int main(void)
