@@ -3,6 +3,12 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+//TODO:
+//Somebody implement this function, you can find the code at
+//https://github.com/pmaclellan/WirelessClub
+//Once you copy/paste that here, practice committing your changes with Git.
+void hsvtorgb(uint8_t*, uint8_t*, uint8_t*, uint8_t, uint8_t, uint8_t);
+
 //INT0 interrupt 
 ISR(INT0_vect ) 
 { 
@@ -50,11 +56,15 @@ void pwm_init(void)
 
 int main(void)
 {
-  
-  cli();			//Disable global interrupts
   pwm_init();
   sei();			//Enable global interrupts
   
+  /*
+  TODO:
+    Add to the following section to set up additional input pins
+    for two more rotary encoders
+  */
+
   // OC0A is tied to pin PD6 (pin 12 on 328 chip)
   // set data direction to OUTPUT
   DDRD |= 1 << DDD6;
