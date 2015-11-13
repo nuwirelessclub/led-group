@@ -9,35 +9,43 @@
 //Once you copy/paste that here, practice committing your changes with Git.
 void hsvtorgb(uint8_t*, uint8_t*, uint8_t*, uint8_t, uint8_t, uint8_t);
 
-//INT0 interrupt 
-ISR(INT0_vect ) 
-{ 
-  if(bit_is_set(PIND, PD3)) //clockwise
-  { 
-    if (OCR0A < 245) OCR0A += 5;
-    else OCR0A = 255;
-  } 
-  else //counter-clockwise
-  { 
-    if (OCR0A >= 10) OCR0A -= 5; 
-    else OCR0A = 0;
-  }
-} 
+volatile uint8_t knob1_value;
+volatile uint8_t knob2_value;
+volatile uint8_t knob3_value;
+volatile uint8_t portchistory = 0;
 
-//INT1 interrupt 
-ISR(INT1_vect ) 
+//PCINT1 interrupt 
+ISR(PCINT1_vect) 
 { 
-  if(bit_is_set(PIND, PD2)) //clockwise
-  { 
-    if (OCR0A < 245) OCR0A += 5;
-    else OCR0A = 255;
-  } 
-  else //counter-clockwise
-  { 
-    if (OCR0A >= 10) OCR0A -= 5;
-    else OCR0A = 0;
-  }
-} 
+  uint8_t changedbits;
+
+  //capture which bits have changed since last time
+
+  changedbits = PINC ^ portchistory;
+  portchistory = PINC;
+
+  if(changedbits & _BV(PC0))
+  {
+    /* PCINT8 changed */
+    // Knob 1
+
+      if (_BV(PC0) & PINC) //rising edge
+      {
+        if (_BV(PC1) & PINC) //clockwise
+          knob1_value++;
+        else 
+          knob1_value--;
+      }
+      else //falling edge
+      {
+        if (_BV(PC1) & PINC)
+          knob1_value--;
+        else 
+          knob1_value++;
+      }
+    }
+
+}
 
 void pwm_init(void)
 {
@@ -70,18 +78,17 @@ int main(void)
   DDRD |= 1 << DDD6;
 
   /* set PD2 and PD3 as input */
-  DDRD &= ~(1 << PD2);        /* PD2 and PD3 as input */
-  DDRD &= ~(1 << PD3);        
-  PORTD |= (1 << PD3)|(1 << PD2);   /* PD2 and PD3 pull-up enabled   */ 
+  DDRC &= ~(1 << PCINT8);        /* PD2 and PD3 as input */
+  DDRC &= ~(1 << PCINT9);        
+  PORTC |= (1 << PCINT8)|(1 << PCINT9);  //enable pullups
 
-  // enable INT0 and INT1
-  EIMSK |= (1<<INT0)|(1<<INT1);
-  // INT0 - falling edge, INT1 - rising edge
-  EICRA |= (1<<ISC01)|(1<<ISC11)|(1<<ISC10);
-
+  PCICR |= _BV(PCIE1); //enable PCINT1 interrupt signal
+  //enable interrupts on three pins
+  PCMSK1 |= (_BV(PCINT8) | _BV(PCINT10) | _BV(PCINT12)); 
 
   while(1) 
   {
+    OCR0A = knob1_value;
     _delay_ms(1);
   }
 }
